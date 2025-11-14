@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid, PerspectiveCamera } from '@react-three/drei';
-import { Point3D, Obstacle } from '@/utils/pathfinding';
+import { OrbitControls, Grid, PerspectiveCamera, Line } from '@react-three/drei';
+import { Point3D, Obstacle, createSmoothCurve } from '@/utils/pathfinding';
 import AnimatedDrone from './AnimatedDrone';
 import * as THREE from 'three';
 
@@ -55,49 +55,46 @@ const ObstacleObject = ({ obstacle }: { obstacle: Obstacle }) => {
   }
 };
 
-const PathVisualization = ({ path, color = "#06b6d4", opacity = 0.8 }: { path: Point3D[], color?: string, opacity?: number }) => {
+// FIXED: Now draws continuous smooth line instead of disconnected cylinders
+const PathVisualization = ({ 
+  path, 
+  color = "#06b6d4", 
+  opacity = 0.8,
+  showWaypoints = true 
+}: { 
+  path: Point3D[]; 
+  color?: string; 
+  opacity?: number;
+  showWaypoints?: boolean;
+}) => {
   if (path.length < 2) return null;
+
+  // Create smooth interpolated path for visualization
+  const smoothPath = path.length > 2 
+    ? createSmoothCurve(path, 50) // 50 interpolated points
+    : path;
+  
+  const points = smoothPath.map(p => [p.x, p.y, p.z] as [number, number, number]);
 
   return (
     <>
-      {path.map((point, i) => {
-        if (i === 0) return null;
-        const prevPoint = path[i - 1];
-        const direction = new THREE.Vector3(
-          point.x - prevPoint.x,
-          point.y - prevPoint.y,
-          point.z - prevPoint.z
-        );
-        const length = direction.length();
-        const midpoint = new THREE.Vector3(
-          (prevPoint.x + point.x) / 2,
-          (prevPoint.y + point.y) / 2,
-          (prevPoint.z + point.z) / 2
-        );
+      {/* Continuous smooth line through the path */}
+      <Line
+        points={points}
+        color={color}
+        lineWidth={3}
+        transparent
+        opacity={opacity}
+      />
 
-        return (
-          <group key={`segment-${i}`}>
-            <mesh position={midpoint} rotation={[0, Math.atan2(direction.x, direction.z), Math.asin(direction.y / length)]}>
-              <cylinderGeometry args={[0.08, 0.08, length, 8]} />
-              <meshStandardMaterial 
-                color={color}
-                emissive={color}
-                emissiveIntensity={0.5}
-                transparent
-                opacity={opacity}
-              />
-            </mesh>
-          </group>
-        );
-      })}
-      
-      {path.map((point, i) => (
-        <mesh key={i} position={[point.x, point.y, point.z]}>
-          <sphereGeometry args={[0.12, 8, 8]} />
+      {/* Show original waypoints as spheres */}
+      {showWaypoints && path.map((point, i) => (
+        <mesh key={`waypoint-${i}`} position={[point.x, point.y, point.z]}>
+          <sphereGeometry args={[0.15, 16, 16]} />
           <meshStandardMaterial 
-            color={color}
-            emissive={color}
-            emissiveIntensity={1}
+            color={color} 
+            emissive={color} 
+            emissiveIntensity={1.5}
           />
         </mesh>
       ))}
@@ -233,12 +230,15 @@ const Scene3D = ({
           <ExploredNodesVisualization nodes={exploredNodes2} color="#c084fc" />
         )}
         
-        <PathVisualization path={path} color="#06b6d4" opacity={0.8} />
+        {/* Main path with continuous smooth line */}
+        <PathVisualization path={path} color="#06b6d4" opacity={0.8} showWaypoints={true} />
         
+        {/* Comparison path */}
         {showComparison && path2 && path2.length > 0 && (
-          <PathVisualization path={path2} color="#a855f7" opacity={0.7} />
+          <PathVisualization path={path2} color="#a855f7" opacity={0.7} showWaypoints={true} />
         )}
         
+        {/* Animated drone */}
         {animateDrone && path.length > 0 && (
           <AnimatedDroneOnPath path={path} progress={droneProgress} />
         )}
