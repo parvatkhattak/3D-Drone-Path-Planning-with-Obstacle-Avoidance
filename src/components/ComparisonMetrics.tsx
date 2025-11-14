@@ -3,12 +3,12 @@ import { PathResult } from '@/utils/pathfinding';
 import { TrendingUp, Clock, MapPin, Award } from 'lucide-react';
 
 interface ComparisonMetricsProps {
-  astarResult: PathResult | null;
-  rrtResult: PathResult | null;
+  result1: PathResult | null;
+  result2: PathResult | null;
 }
 
-const ComparisonMetrics = ({ astarResult, rrtResult }: ComparisonMetricsProps) => {
-  if (!astarResult || !rrtResult) {
+const ComparisonMetrics = ({ result1, result2 }: ComparisonMetricsProps) => {
+  if (!result1 || !result2) {
     return (
       <Card className="h-full">
         <CardHeader>
@@ -30,13 +30,13 @@ const ComparisonMetrics = ({ astarResult, rrtResult }: ComparisonMetricsProps) =
     return astar > rrt ? 'astar' : 'rrt';
   };
 
-  const pathLengthWinner = astarResult.success && rrtResult.success 
-    ? getBetterMetric(astarResult.length, rrtResult.length, true)
-    : astarResult.success ? 'astar' : rrtResult.success ? 'rrt' : 'none';
+  const pathLengthWinner = result1.success && result2.success 
+    ? getBetterMetric(result1.length, result2.length, true)
+    : result1.success ? 'astar' : result2.success ? 'rrt' : 'none';
 
-  const timeWinner = getBetterMetric(astarResult.computationTime, rrtResult.computationTime, true);
+  const timeWinner = getBetterMetric(result1.computationTime, result2.computationTime, true);
   
-  const nodesWinner = getBetterMetric(astarResult.nodesExplored, rrtResult.nodesExplored, true);
+  const nodesWinner = getBetterMetric(result1.nodesExplored, result2.nodesExplored, true);
 
   return (
     <Card className="h-full">
@@ -51,14 +51,14 @@ const ComparisonMetrics = ({ astarResult, rrtResult }: ComparisonMetricsProps) =
         <div className="grid grid-cols-2 gap-3 pb-3 border-b border-border">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">A* Algorithm</p>
-            <p className={`text-sm font-semibold ${astarResult.success ? 'text-success' : 'text-destructive'}`}>
-              {astarResult.success ? '✓ Success' : '✗ Failed'}
+            <p className={`text-sm font-semibold ${result1.success ? 'text-success' : 'text-destructive'}`}>
+              {result1.success ? '✓ Success' : '✗ Failed'}
             </p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">RRT Algorithm</p>
-            <p className={`text-sm font-semibold ${rrtResult.success ? 'text-success' : 'text-destructive'}`}>
-              {rrtResult.success ? '✓ Success' : '✗ Failed'}
+            <p className={`text-sm font-semibold ${result2.success ? 'text-success' : 'text-destructive'}`}>
+              {result2.success ? '✓ Success' : '✗ Failed'}
             </p>
           </div>
         </div>
@@ -73,22 +73,22 @@ const ComparisonMetrics = ({ astarResult, rrtResult }: ComparisonMetricsProps) =
             <div className={`p-2 rounded-lg ${pathLengthWinner === 'astar' ? 'bg-success/20 border border-success' : 'bg-secondary'}`}>
               <p className="text-xs text-muted-foreground">A*</p>
               <p className="text-lg font-mono font-bold">
-                {astarResult.success ? astarResult.length.toFixed(2) : 'N/A'}
+                {result1.success ? result1.length.toFixed(2) : 'N/A'}
               </p>
-              {pathLengthWinner === 'astar' && astarResult.success && rrtResult.success && (
+              {pathLengthWinner === 'astar' && result1.success && result2.success && (
                 <p className="text-xs text-success">
-                  {((1 - astarResult.length / rrtResult.length) * 100).toFixed(1)}% shorter
+                  {((1 - result1.length / result2.length) * 100).toFixed(1)}% shorter
                 </p>
               )}
             </div>
             <div className={`p-2 rounded-lg ${pathLengthWinner === 'rrt' ? 'bg-success/20 border border-success' : 'bg-secondary'}`}>
               <p className="text-xs text-muted-foreground">RRT</p>
               <p className="text-lg font-mono font-bold">
-                {rrtResult.success ? rrtResult.length.toFixed(2) : 'N/A'}
+                {result2.success ? result2.length.toFixed(2) : 'N/A'}
               </p>
-              {pathLengthWinner === 'rrt' && astarResult.success && rrtResult.success && (
+              {pathLengthWinner === 'rrt' && result1.success && result2.success && (
                 <p className="text-xs text-success">
-                  {((1 - rrtResult.length / astarResult.length) * 100).toFixed(1)}% shorter
+                  {((1 - result2.length / result1.length) * 100).toFixed(1)}% shorter
                 </p>
               )}
             </div>
@@ -105,22 +105,22 @@ const ComparisonMetrics = ({ astarResult, rrtResult }: ComparisonMetricsProps) =
             <div className={`p-2 rounded-lg ${timeWinner === 'astar' ? 'bg-success/20 border border-success' : 'bg-secondary'}`}>
               <p className="text-xs text-muted-foreground">A*</p>
               <p className="text-lg font-mono font-bold">
-                {astarResult.computationTime.toFixed(2)}
+                {result1.computationTime.toFixed(2)}
               </p>
               {timeWinner === 'astar' && (
                 <p className="text-xs text-success">
-                  {((1 - astarResult.computationTime / rrtResult.computationTime) * 100).toFixed(1)}% faster
+                  {((1 - result1.computationTime / result2.computationTime) * 100).toFixed(1)}% faster
                 </p>
               )}
             </div>
             <div className={`p-2 rounded-lg ${timeWinner === 'rrt' ? 'bg-success/20 border border-success' : 'bg-secondary'}`}>
               <p className="text-xs text-muted-foreground">RRT</p>
               <p className="text-lg font-mono font-bold">
-                {rrtResult.computationTime.toFixed(2)}
+                {result2.computationTime.toFixed(2)}
               </p>
               {timeWinner === 'rrt' && (
                 <p className="text-xs text-success">
-                  {((1 - rrtResult.computationTime / astarResult.computationTime) * 100).toFixed(1)}% faster
+                  {((1 - result2.computationTime / result1.computationTime) * 100).toFixed(1)}% faster
                 </p>
               )}
             </div>
@@ -137,13 +137,13 @@ const ComparisonMetrics = ({ astarResult, rrtResult }: ComparisonMetricsProps) =
             <div className={`p-2 rounded-lg ${nodesWinner === 'astar' ? 'bg-success/20 border border-success' : 'bg-secondary'}`}>
               <p className="text-xs text-muted-foreground">A*</p>
               <p className="text-lg font-mono font-bold">
-                {astarResult.nodesExplored}
+                {result1.nodesExplored}
               </p>
             </div>
             <div className={`p-2 rounded-lg ${nodesWinner === 'rrt' ? 'bg-success/20 border border-success' : 'bg-secondary'}`}>
               <p className="text-xs text-muted-foreground">RRT</p>
               <p className="text-lg font-mono font-bold">
-                {rrtResult.nodesExplored}
+                {result2.nodesExplored}
               </p>
             </div>
           </div>
@@ -153,7 +153,7 @@ const ComparisonMetrics = ({ astarResult, rrtResult }: ComparisonMetricsProps) =
         <div className="pt-3 border-t border-border">
           <p className="text-xs font-medium mb-2">Performance Summary:</p>
           <div className="space-y-1">
-            {astarResult.success && rrtResult.success ? (
+            {result1.success && result2.success ? (
               <>
                 <p className="text-xs text-muted-foreground">
                   • {pathLengthWinner === 'astar' ? 'A*' : 'RRT'} found shorter path
@@ -167,8 +167,8 @@ const ComparisonMetrics = ({ astarResult, rrtResult }: ComparisonMetricsProps) =
               </>
             ) : (
               <p className="text-xs text-warning">
-                {!astarResult.success && !rrtResult.success ? 'Both algorithms failed to find path' :
-                 !astarResult.success ? 'Only RRT found a valid path' : 'Only A* found a valid path'}
+                {!result1.success && !result2.success ? 'Both algorithms failed to find path' :
+                 !result1.success ? 'Only RRT found a valid path' : 'Only A* found a valid path'}
               </p>
             )}
           </div>

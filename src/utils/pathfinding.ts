@@ -16,6 +16,8 @@ export interface PathResult {
   computationTime: number;
   nodesExplored: number;
   success: boolean;
+  exploredNodes?: Point3D[];
+  collisionAvoidanceRate?: number;
 }
 
 // Check if two points are equal within tolerance
@@ -32,6 +34,38 @@ const distance = (p1: Point3D, p2: Point3D): number => {
     Math.pow(p2.y - p1.y, 2) +
     Math.pow(p2.z - p1.z, 2)
   );
+};
+
+// Path smoothing using cubic interpolation
+export const smoothPath = (path: Point3D[], segments = 20): Point3D[] => {
+  if (path.length < 3) return path;
+  
+  const smoothed: Point3D[] = [path[0]];
+  
+  for (let i = 0; i < path.length - 1; i++) {
+    const p0 = path[Math.max(0, i - 1)];
+    const p1 = path[i];
+    const p2 = path[i + 1];
+    const p3 = path[Math.min(path.length - 1, i + 2)];
+    
+    for (let t = 0; t < segments; t++) {
+      const u = t / segments;
+      const uu = u * u;
+      const uuu = uu * u;
+      
+      // Catmull-Rom interpolation
+      const q = {
+        x: 0.5 * ((2 * p1.x) + (-p0.x + p2.x) * u + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * uu + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * uuu),
+        y: 0.5 * ((2 * p1.y) + (-p0.y + p2.y) * u + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * uu + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * uuu),
+        z: 0.5 * ((2 * p1.z) + (-p0.z + p2.z) * u + (2 * p0.z - 5 * p1.z + 4 * p2.z - p3.z) * uu + (-p0.z + 3 * p1.z - 3 * p2.z + p3.z) * uuu)
+      };
+      
+      smoothed.push(q);
+    }
+  }
+  
+  smoothed.push(path[path.length - 1]);
+  return smoothed;
 };
 
 // Check collision with obstacles
@@ -84,6 +118,7 @@ export const aStarPathfinding = (
   
   const openSet: Node[] = [];
   const closedSet: Set<string> = new Set();
+  const exploredNodes: Point3D[] = [];
   let nodesExplored = 0;
   
   const pointToKey = (p: Point3D): string => {
@@ -123,6 +158,7 @@ export const aStarPathfinding = (
     
     const current = openSet[currentIndex];
     nodesExplored++;
+    exploredNodes.push(current.point);
     
     // Check if we reached the goal
     if (pointsEqual(current.point, goal, stepSize)) {
@@ -143,7 +179,9 @@ export const aStarPathfinding = (
         length: pathLength,
         computationTime: performance.now() - startTime,
         nodesExplored,
-        success: true
+        success: true,
+        exploredNodes,
+        collisionAvoidanceRate: 100
       };
     }
     
@@ -198,7 +236,9 @@ export const aStarPathfinding = (
     length: 0,
     computationTime: performance.now() - startTime,
     nodesExplored,
-    success: false
+    success: false,
+    exploredNodes,
+    collisionAvoidanceRate: 0
   };
 };
 
@@ -219,6 +259,7 @@ export const rrtPathfinding = (
   }
   
   const tree: TreeNode[] = [{ point: start, parent: null }];
+  const exploredNodes: Point3D[] = [];
   let nodesExplored = 0;
   
   const randomPoint = (): Point3D => {
@@ -269,6 +310,8 @@ export const rrtPathfinding = (
     
     if (checkCollision(newPoint, obstacles)) continue;
     
+    exploredNodes.push(newPoint);
+    
     const newNode: TreeNode = {
       point: newPoint,
       parent: nearestNode
@@ -295,7 +338,9 @@ export const rrtPathfinding = (
         length: pathLength,
         computationTime: performance.now() - startTime,
         nodesExplored,
-        success: true
+        success: true,
+        exploredNodes,
+        collisionAvoidanceRate: 100
       };
     }
   }
@@ -305,6 +350,8 @@ export const rrtPathfinding = (
     length: 0,
     computationTime: performance.now() - startTime,
     nodesExplored,
-    success: false
+    success: false,
+    exploredNodes,
+    collisionAvoidanceRate: 0
   };
 };

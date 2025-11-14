@@ -29,6 +29,11 @@ const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [isComparison, setIsComparison] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showExploration, setShowExploration] = useState(false);
+  const [animateDrone, setAnimateDrone] = useState(false);
+  const [droneProgress, setDroneProgress] = useState(0);
+  const [exploredNodes, setExploredNodes] = useState<Point3D[]>([]);
+  const [exploredNodes2, setExploredNodes2] = useState<Point3D[]>([]);
 
   const handleRunSimulation = () => {
     setIsRunning(true);
@@ -38,6 +43,11 @@ const Index = () => {
     setPath2([]);
     setResult(null);
     setResult2(null);
+    setExploredNodes([]);
+    setExploredNodes2([]);
+    setAnimateDrone(false);
+    setDroneProgress(0);
+    setShowExploration(true);
     
     toast.info(`Running ${algorithm === 'astar' ? 'A*' : 'RRT'} algorithm...`);
     
@@ -52,20 +62,46 @@ const Index = () => {
       
       setPath(pathResult.path);
       setResult(pathResult);
+      setExploredNodes(pathResult.exploredNodes || []);
       setIsRunning(false);
-      
-      setTimeout(() => setIsAnimating(false), 2000);
+      setIsAnimating(false);
       
       if (pathResult.success) {
         toast.success('Path found successfully!', {
           description: `Length: ${pathResult.length.toFixed(2)} units, Time: ${pathResult.computationTime.toFixed(2)}ms`
         });
+        
+        // Start drone animation after a short delay
+        setTimeout(() => {
+          setAnimateDrone(true);
+          animateDroneAlongPath();
+        }, 500);
       } else {
         toast.error('Failed to find a path', {
           description: 'Try adjusting obstacles or using a different algorithm'
         });
       }
     }, 100);
+  };
+
+  const animateDroneAlongPath = () => {
+    const duration = 5000; // 5 seconds
+    const startTime = Date.now();
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      setDroneProgress(progress);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        toast.success('Drone reached destination!');
+      }
+    };
+    
+    animate();
   };
 
   const handleRunComparison = () => {
@@ -76,6 +112,11 @@ const Index = () => {
     setPath2([]);
     setResult(null);
     setResult2(null);
+    setExploredNodes([]);
+    setExploredNodes2([]);
+    setAnimateDrone(false);
+    setDroneProgress(0);
+    setShowExploration(true);
     
     toast.info('Running both A* and RRT algorithms...');
     
@@ -87,9 +128,10 @@ const Index = () => {
       setPath2(rrtResult.path);
       setResult(astarResult);
       setResult2(rrtResult);
+      setExploredNodes(astarResult.exploredNodes || []);
+      setExploredNodes2(rrtResult.exploredNodes || []);
       setIsRunning(false);
-      
-      setTimeout(() => setIsAnimating(false), 2000);
+      setIsAnimating(false);
       
       if (astarResult.success && rrtResult.success) {
         toast.success('Both algorithms completed!', {
@@ -114,6 +156,11 @@ const Index = () => {
     setResult2(null);
     setIsComparison(false);
     setIsAnimating(false);
+    setAnimateDrone(false);
+    setDroneProgress(0);
+    setExploredNodes([]);
+    setExploredNodes2([]);
+    setShowExploration(false);
     setStart({ x: -8, y: -8, z: -8 });
     setGoal({ x: 8, y: 8, z: 8 });
     setObstacles([
@@ -155,20 +202,20 @@ const Index = () => {
   };
 
   return (
-  <div className="min-h-screen bg-background flex flex-col overflow-auto">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-border bg-card sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
-                3D Drone Path Planning
+              <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
+                3D Drone Path Planning Simulator
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Advanced obstacle avoidance with A* and RRT algorithms
               </p>
             </div>
-            <div className="text-right text-sm text-muted-foreground">
+            <div className="text-right text-xs text-muted-foreground">
               <p>Parvat Khattak • 122201043</p>
               <p>Himanshu Kumar • 122201041</p>
             </div>
@@ -177,51 +224,73 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 w-full h-full p-4">
-        <div className="grid grid-cols-12 gap-2 min-h-[calc(100vh-120px)]">
+      <div className="container mx-auto p-4">
+        <div className="grid grid-cols-12 gap-4">
           {/* Control Panel */}
-          <div className="col-span-12 lg:col-span-2 h-full">
-            <ControlPanel
-              algorithm={algorithm}
-              onAlgorithmChange={setAlgorithm}
-              onRunSimulation={handleRunSimulation}
-              onRunComparison={handleRunComparison}
-              onReset={handleReset}
-              start={start}
-              goal={goal}
-              obstacles={obstacles}
-              onStartChange={setStart}
-              onGoalChange={setGoal}
-              onAddObstacle={handleAddObstacle}
-              onRemoveObstacle={handleRemoveObstacle}
-              isRunning={isRunning}
-            />
+          <div className="col-span-12 lg:col-span-3">
+            <div className="sticky top-20">
+              <ControlPanel
+                algorithm={algorithm}
+                onAlgorithmChange={setAlgorithm}
+                onRunSimulation={handleRunSimulation}
+                onRunComparison={handleRunComparison}
+                onReset={handleReset}
+                start={start}
+                goal={goal}
+                obstacles={obstacles}
+                onStartChange={setStart}
+                onGoalChange={setGoal}
+                onAddObstacle={handleAddObstacle}
+                onRemoveObstacle={handleRemoveObstacle}
+                isRunning={isRunning}
+              />
+            </div>
           </div>
 
           {/* 3D Scene */}
-          <div className="col-span-12 lg:col-span-8 h-full">
-            <div className="w-full h-full bg-card rounded-lg border border-border overflow-hidden">
+          <div className="col-span-12 lg:col-span-6">
+            <div className="w-full h-[600px] bg-card rounded-lg border border-border overflow-hidden">
               <Scene3D
                 start={start}
                 goal={goal}
                 obstacles={obstacles}
                 path={path}
                 path2={path2}
+                exploredNodes={exploredNodes}
+                exploredNodes2={exploredNodes2}
                 onStartChange={setStart}
                 onGoalChange={setGoal}
                 isAnimating={isAnimating}
                 showComparison={isComparison}
+                showExploration={showExploration}
+                animateDrone={animateDrone}
+                droneProgress={droneProgress}
               />
+            </div>
+            
+            {/* Visualization Controls */}
+            <div className="mt-3 flex gap-2 items-center justify-center">
+              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showExploration}
+                  onChange={(e) => setShowExploration(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                Show Exploration Nodes
+              </label>
             </div>
           </div>
 
           {/* Metrics Panel */}
-          <div className="col-span-12 lg:col-span-2 h-full">
-            {isComparison ? (
-              <ComparisonMetrics astarResult={result} rrtResult={result2} />
-            ) : (
-              <MetricsPanel result={result} />
-            )}
+          <div className="col-span-12 lg:col-span-3">
+            <div className="sticky top-20">
+              {isComparison && result && result2 ? (
+                <ComparisonMetrics result1={result} result2={result2} />
+              ) : (
+                <MetricsPanel result={result} />
+              )}
+            </div>
           </div>
         </div>
       </div>

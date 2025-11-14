@@ -80,22 +80,34 @@ const MetricsPanel = ({ result }: MetricsPanelProps) => {
           </div>
 
           {result.success && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-primary" />
-                <span className="text-sm">Waypoints</span>
+            <>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  <span className="text-sm">Collision Avoidance</span>
+                </div>
+                <span className="text-sm font-mono font-medium text-success">
+                  {result.collisionAvoidanceRate?.toFixed(0)}%
+                </span>
               </div>
-              <span className="text-sm font-mono font-medium">
-                {result.path.length}
-              </span>
-            </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <span className="text-sm">Waypoints</span>
+                </div>
+                <span className="text-sm font-mono font-medium">
+                  {result.path.length}
+                </span>
+              </div>
+            </>
           )}
         </div>
 
         {result.success && (
           <div className="pt-2 border-t border-border">
-            <p className="text-xs text-muted-foreground">
-              Success rate: 100% • Collision-free path achieved
+            <p className="text-xs text-success">
+              ✓ Collision-free path achieved with 100% success rate
             </p>
           </div>
         )}
