@@ -29,7 +29,6 @@ const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [isComparison, setIsComparison] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [showExploration, setShowExploration] = useState(false);
   const [animateDrone, setAnimateDrone] = useState(false);
   const [droneProgress, setDroneProgress] = useState(0);
   const [exploredNodes, setExploredNodes] = useState<Point3D[]>([]);
@@ -47,7 +46,6 @@ const Index = () => {
     setExploredNodes2([]);
     setAnimateDrone(false);
     setDroneProgress(0);
-    setShowExploration(true);
     
     toast.info(`Running ${algorithm === 'astar' ? 'A*' : 'RRT'} algorithm...`);
     
@@ -116,7 +114,6 @@ const Index = () => {
     setExploredNodes2([]);
     setAnimateDrone(false);
     setDroneProgress(0);
-    setShowExploration(true);
     
     toast.info('Running both A* and RRT algorithms...');
     
@@ -160,7 +157,6 @@ const Index = () => {
     setDroneProgress(0);
     setExploredNodes([]);
     setExploredNodes2([]);
-    setShowExploration(false);
     setStart({ x: -8, y: -8, z: -8 });
     setGoal({ x: 8, y: 8, z: 8 });
     setObstacles([
@@ -262,24 +258,13 @@ const Index = () => {
                 onGoalChange={setGoal}
                 isAnimating={isAnimating}
                 showComparison={isComparison}
-                showExploration={showExploration}
+                showExploration={false}
                 animateDrone={animateDrone}
                 droneProgress={droneProgress}
               />
             </div>
             
-            {/* Visualization Controls */}
-            <div className="mt-3 flex gap-2 items-center justify-center">
-              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showExploration}
-                  onChange={(e) => setShowExploration(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                Show Exploration Nodes
-              </label>
-            </div>
+            {/* Visualization Controls section REMOVED */}
           </div>
 
           {/* Metrics Panel */}
