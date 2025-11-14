@@ -198,9 +198,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
+      <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
@@ -220,63 +220,53 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto p-4">
-        <div className="grid grid-cols-12 gap-4">
-          {/* Control Panel */}
-          <div className="col-span-12 lg:col-span-3">
-            <div className="sticky top-20">
-              <ControlPanel
-                algorithm={algorithm}
-                onAlgorithmChange={setAlgorithm}
-                onRunSimulation={handleRunSimulation}
-                onRunComparison={handleRunComparison}
-                onReset={handleReset}
-                start={start}
-                goal={goal}
-                obstacles={obstacles}
-                onStartChange={setStart}
-                onGoalChange={setGoal}
-                onAddObstacle={handleAddObstacle}
-                onRemoveObstacle={handleRemoveObstacle}
-                isRunning={isRunning}
-              />
-            </div>
-          </div>
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[380px_1fr_320px] gap-4 p-4 overflow-hidden">
+        {/* Control Panel */}
+        <div className="overflow-y-auto max-h-full pr-2">
+          <ControlPanel
+            algorithm={algorithm}
+            onAlgorithmChange={setAlgorithm}
+            onRunSimulation={handleRunSimulation}
+            onRunComparison={handleRunComparison}
+            onReset={handleReset}
+            start={start}
+            goal={goal}
+            obstacles={obstacles}
+            onStartChange={setStart}
+            onGoalChange={setGoal}
+            onAddObstacle={handleAddObstacle}
+            onRemoveObstacle={handleRemoveObstacle}
+            isRunning={isRunning}
+          />
+        </div>
 
-          {/* 3D Scene */}
-          <div className="col-span-12 lg:col-span-6">
-            <div className="w-full h-[600px] bg-card rounded-lg border border-border overflow-hidden">
-              <Scene3D
-                start={start}
-                goal={goal}
-                obstacles={obstacles}
-                path={path}
-                path2={path2}
-                exploredNodes={exploredNodes}
-                exploredNodes2={exploredNodes2}
-                onStartChange={setStart}
-                onGoalChange={setGoal}
-                isAnimating={isAnimating}
-                showComparison={isComparison}
-                showExploration={false}
-                animateDrone={animateDrone}
-                droneProgress={droneProgress}
-              />
-            </div>
-            
-            {/* Visualization Controls section REMOVED */}
-          </div>
+        {/* 3D Scene */}
+        <div className="h-full min-h-[500px] bg-card rounded-lg border border-border overflow-hidden">
+          <Scene3D
+            start={start}
+            goal={goal}
+            obstacles={obstacles}
+            path={path}
+            path2={path2}
+            exploredNodes={exploredNodes}
+            exploredNodes2={exploredNodes2}
+            onStartChange={setStart}
+            onGoalChange={setGoal}
+            isAnimating={isAnimating}
+            showComparison={isComparison}
+            showExploration={false}
+            animateDrone={animateDrone}
+            droneProgress={droneProgress}
+          />
+        </div>
 
-          {/* Metrics Panel */}
-          <div className="col-span-12 lg:col-span-3">
-            <div className="sticky top-20">
-              {isComparison && result && result2 ? (
-                <ComparisonMetrics result1={result} result2={result2} />
-              ) : (
-                <MetricsPanel result={result} />
-              )}
-            </div>
-          </div>
+        {/* Metrics Panel */}
+        <div className="overflow-y-auto max-h-full pl-2">
+          {isComparison && result && result2 ? (
+            <ComparisonMetrics result1={result} result2={result2} />
+          ) : (
+            <MetricsPanel result={result} />
+          )}
         </div>
       </div>
     </div>
