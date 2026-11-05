@@ -73,7 +73,7 @@ npm install
 npm run dev
 ```
 
-Then open the local URL that Vite prints (usually http://localhost:5173 or http://localhost:8080).
+Then open http://localhost:8080.
 
 ## 🛠️ Tech Stack
 
